@@ -1,7 +1,8 @@
-from typing import List
+from typing import List, Annotated, TypeVar
 from sqlalchemy.ext.declarative import declarative_base
 from pydantic.v1 import BaseSettings
 import os 
+from pydantic import Field
 
 class Settings(BaseSettings):
     API_V3_VERSION : str = '/api/v3'

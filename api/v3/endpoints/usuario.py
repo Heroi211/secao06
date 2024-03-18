@@ -4,6 +4,7 @@ from fastapi import APIRouter,status,Depends,HTTPException,Response
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -28,13 +29,17 @@ async def post_usuario(usuario: UsuarioSchemaCreate,db:AsyncSession=Depends(get_
                                           email=usuario.email,
                                           senha=geraHashSenha(usuario.senha),eh_admin=usuario.eh_admin)
     async with db as session:
-        session.add(novoUsuario)
-        session.commit()
-        
-        return novoUsuario
+        try:
+            session.add(novoUsuario)
+            await session.commit()
+
+            return novoUsuario
+        except IntegrityError:
+            raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,
+                                detail='Já existe um usuário com este email cadastrado.')
     
 #GET Usuarios
-@router.get('/',response_model=UsuarioSchema)
+@router.get('/',response_model=List[UsuarioSchema])
 async def get_usuarios(db:AsyncSession=Depends(get_session)):
     async with db as session:
         querie = select(UsuarioModel)
@@ -58,7 +63,7 @@ async def get_usuario(usuario_id:int,db:AsyncSession=Depends(get_session)):
                             status_code=status.HTTP_404_NOT_FOUND)
 
 #PUT usuario
-@router.put('/{usuario_id}', response_model=status.HTTP_201_CREATED)
+@router.put('/{usuario_id}', response_model=UsuarioSchema,status_code=status.HTTP_202_ACCEPTED)
 async def put_usuario(usuario_id:int,usuario:UsuarioSchemaUp,db:AsyncSession=Depends(get_session)):
     async with db as session:
         querie = select(UsuarioModel).filter(UsuarioModel.id==usuario_id)
@@ -66,8 +71,6 @@ async def put_usuario(usuario_id:int,usuario:UsuarioSchemaUp,db:AsyncSession=Dep
         usuarioUP:UsuarioSchema=result.scalars().unique().one_or_none()
     
     if usuarioUP:
-        if usuario.id:
-            usuarioUP.id = usuario.id
         if usuario.nome:
             usuarioUP.nome = usuario.nome    
         if usuario.sobrenome:
@@ -79,6 +82,7 @@ async def put_usuario(usuario_id:int,usuario:UsuarioSchemaUp,db:AsyncSession=Dep
         if usuario.eh_admin:
             usuarioUP.eh_admin = usuario.eh_admin
         await session.commit()
+        return usuarioUP
     else:
         raise HTTPException(detail='Usuário não encontrado.',
                            status_code=status.HTTP_404_NOT_FOUND)
@@ -103,7 +107,7 @@ async def delete_usuario(usuario_id:int,db:AsyncSession=Depends(get_session)):
 
 #POST login
 @router.post('/login')
-async def login_usuario(form_data: OAuth2PasswordRequestForm=Depends(),db:AsyncSession=Depends(get_session())):
+async def login_usuario(form_data: OAuth2PasswordRequestForm=Depends(),db:AsyncSession=Depends(get_session)):
     usuario = await autenticar(email=form_data.username,senha=form_data.password,db=db)
     
     if not usuario:
