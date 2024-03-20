@@ -96,8 +96,8 @@ async def delete_usuario(usuario_id:int,db:AsyncSession=Depends(get_session)):
         usuariodel = result.scalars().unique().one_or_none()
         
     if usuariodel:
-        session.delete(usuariodel)
-        session.commit()
+        await session.delete(usuariodel)
+        await session.commit()
         
         return(status.HTTP_204_NO_CONTENT)
     else:
