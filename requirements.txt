@@ -4,7 +4,9 @@ asyncpg==0.29.0
 click==8.1.7
 colorama==0.4.6
 distlib==0.3.8
+dnspython==2.6.1
 ecdsa==0.18.0
+email_validator==2.1.1
 fastapi==0.110.0
 filelock==3.13.1
 greenlet==3.0.3

@@ -18,7 +18,7 @@ async def postArtigo(artigo: ArtigoSchema, UsuarioLogado: UsuarioModel = Depends
         titulo=artigo.titulo,
         descricao=artigo.descricao,
         url_fonte=artigo.url_fonte,
-        usuarioid=UsuarioLogado.id,
+        usuario_id=UsuarioLogado.id,
     )
     db.add(novoArtigo)
     await db.commit()
@@ -32,7 +32,11 @@ async def getArtigos(db:AsyncSession = Depends(get_session)):
         result = await session.execute(querie)
         artigos: List[ArtigoModel] = result.scalars().unique().all()
         
-        return artigos
+        if artigos:
+            
+            return artigos
+        else:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Artigos não encotrados.')
 
 #get artigo
 @router.get('/{artigoID}',response_model=ArtigoSchema,status_code=status.HTTP_200_OK)

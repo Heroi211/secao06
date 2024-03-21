@@ -25,37 +25,40 @@ async def get_session() -> Generator:  # type: ignore
         yield session
     finally:
         await session.close()
-        
+  
 async def getCurrentUser(db: Session = Depends(get_session),
-                         token: str = Depends(oauth2Schema)) -> UsuarioModel:
-    credentialException: HTTPException = HTTPException(
+                           token: str = Depends(oauth2Schema)) -> UsuarioModel:
+    credential_exception: HTTPException = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail='Não foi possível autenticar a credencial',
         headers={"WWW-Authenticate": "Bearer"},
     )
-    
+
     try:
         payload = jwt.decode(
             token,
             settings.JWT_SECRET,
             algorithms=[settings.ALGORITH],
-            options={"verify_aud":False}
+            options={"verify_aud": False}
         )
-        username:str = payload.get("sub")
+
+        username: str = payload.get("sub")
         if username is None:
-            raise credentialException
-        token_data :TokenData = TokenData(username = username)
+            raise credential_exception
+
+        token_data: TokenData = TokenData(username=username)
     except JWTError:
-        raise credentialException
-    
+        raise credential_exception
+
     async with db as session:
-        query = select(UsuarioModel).filter(UsuarioModel.id == int(token_data.username) )
+        query = select(UsuarioModel).filter(
+            UsuarioModel.id == int(token_data.username))
         result = await session.execute(query)
-        usuario:UsuarioModel = result.scalars().unique().one_or_None()
-        
+        usuario: UsuarioModel = result.scalars().unique().one_or_none()
         if usuario is None:
-            raise credentialException
-        
-        return usuario
+            raise credential_exception
+
+        return usuario      
+
         
         

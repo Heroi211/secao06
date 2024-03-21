@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from models.usuario_Model import UsuarioModel
-from schemas.usuario_schema import UsuarioSchema,UsuarioSchemaCreate,UsuarioSchemaUp
+from schemas.usuario_schema import UsuarioSchema,UsuarioSchemaCreate,UsuarioSchemaUp,UsuarioSchemaArtigos
 
 from core.deps import get_session,getCurrentUser
 from core.security import geraHashSenha
@@ -49,7 +49,7 @@ async def get_usuarios(db:AsyncSession=Depends(get_session)):
         return Usuarios
     
 #GET Usuario
-@router.get('/{usuario_id}',response_model=UsuarioSchema)
+@router.get('/{usuario_id}',response_model=UsuarioSchemaArtigos)
 async def get_usuario(usuario_id:int,db:AsyncSession=Depends(get_session)):
     async with db as session:
         querie = select(UsuarioModel).filter(UsuarioModel.id==usuario_id)
