@@ -1,0 +1,56 @@
+# 1--Block 
+host1: localhost
+datacenter1:
+  location: Rio de Janeiro
+  router: 42
+roles1:
+  - web
+  - dns
+
+# 2--Fluxo
+host2: "localhost"
+datacenter2: {location: Rio de Janeiro, 
+  router2: 42 }
+roles2: [ web , dns ]
+
+# valores escalares com várias linhas
+funcionamento: | # os valores serão lançados respeitando suas linhas
+  segunda  - das 08:00 as 17:00
+  terça    - das 08:00 as 18:00
+  quarta   - das 10:00 as 19:00
+  quinta   - das 11:00 as 20:00
+  sexta    - das 12:00 as 21:00
+  sábado   - das 13:00 as 22:00
+  domingo  - das 14:00 as 23:00
+--- # Separa o documento em estruturas, cada --- separa uma configuração da outra.
+comentarios: > # Os valores serão lançados um ao lado do outro
+  temos alto uso de CPU
+  desde 04/10/2020.
+  Estamos investigando.
+
+---
+# TAGS
+#%TAG | tag:host:geek:
+
+---
+# Ancoras semelhantes a variáveis.
+
+host: localhost
+datacenter: 
+  location: &RJ Rio de Janeiro
+---
+host: localhost
+datacenter: *RJ
+---
+roles: &roles # assim declara
+  - webserver
+  - databaselocal
+---
+roles: *roles # Assim usa
+
+
+
+
+
+
+
